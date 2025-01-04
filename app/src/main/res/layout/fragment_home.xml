@@ -39,7 +39,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@null"
-                    android:hint="Search products..."
+                    android:hint="Testing..."
                     android:inputType="text"
                     android:paddingStart="8dp" />
 
