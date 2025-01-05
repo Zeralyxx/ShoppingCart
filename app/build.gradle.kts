@@ -49,11 +49,12 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
-    // Add the dependencies for Firebase Firestore and Analytics
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation ("com.google.firebase:firebase-auth:21.1.0")
-
+    implementation ("com.google.firebase:firebase-database:20.3.0") // Or the latest version
+    implementation ("com.google.firebase:firebase-auth:22.3.0") // Or the latest version
+    implementation ("com.google.firebase:firebase-firestore:24.10.1") // Or the latest version
+    implementation ("com.google.firebase:firebase-storage:20.3.0") // Or the latest version
+    implementation ("com.google.firebase:firebase-messaging:23.4.0") // Or the latest version
+    implementation ("com.google.firebase:firebase-analytics:21.5.0") // Or the latest version
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
 }
