@@ -14,6 +14,12 @@ public class Product {
         this.imageResId = imageResId;
         this.quantity = 1; // Default quantity
     }
+    public Product(String name, double price, int imageResId, int quantity) {
+        this.name = name;
+        this.price = price;
+        this.imageResId = imageResId;
+        this.quantity = quantity;
+    }
 
     // Getters
     public String getName() { return name; }

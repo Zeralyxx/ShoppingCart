@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".CartFragment">
+    tools:context=".CartFragment"
+    android:background="@color/gray">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/headerLayout"
@@ -37,7 +38,7 @@
             app:layout_constraintVertical_bias="0.0" />
 
         <ImageButton
-            android:id="@+id/searchButton"
+            android:id="@+id/removeButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
@@ -55,9 +56,12 @@
         android:id="@+id/cartRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="10px"
+        android:layout_marginTop="10px"
+        android:layout_marginEnd="10px"
         app:layout_constraintBottom_toTopOf="@id/checkoutBox"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerLayout"
         app:layout_constraintVertical_bias="0.0" />
@@ -75,6 +79,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0">
+
+        <CheckBox
+            android:id="@+id/selectAllCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <TextView
+            android:id="@+id/totalPriceTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Total: ₱0.00"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/selectAllCheckbox"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <Button
             android:id="@+id/checkoutButton"
