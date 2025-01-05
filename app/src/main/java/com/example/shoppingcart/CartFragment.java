@@ -1,5 +1,6 @@
 package com.example.shoppingcart;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,10 +8,12 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
+import android.widget.Button;
 
 public class CartFragment extends Fragment {
 
@@ -20,6 +23,7 @@ public class CartFragment extends Fragment {
     private ImageButton removeButton;
     private CheckBox selectAllCheckbox;
     private TextView totalPriceTextView;
+    private Button checkoutButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -59,9 +63,19 @@ public class CartFragment extends Fragment {
 
 
         // Set up item checked change listener
-        cartAdapter.setOnItemCheckedChangeListener(checkedItems -> updateTotalPrice(checkedItems));
+        cartAdapter.setOnItemCheckedChangeListener(checkedItems -> {
+            updateTotalPrice(checkedItems);
+            updateCheckoutButtonState(checkedItems);
+        });
 
         updateTotalPrice(cartAdapter.getCheckedItems());
+
+        // Initialize checkout button and set click listener
+        checkoutButton = view.findViewById(R.id.checkoutButton);
+        checkoutButton.setOnClickListener(v -> navigateToCheckout());
+
+        // Initial state of the checkout button
+        updateCheckoutButtonState(cartAdapter.getCheckedItems());
 
         return view;
     }
@@ -88,6 +102,26 @@ public class CartFragment extends Fragment {
         totalPriceTextView.setText("Total: ₱" + String.format("%.2f", totalPrice));
     }
 
+    private void navigateToCheckout() {
+        List<Product> checkedItems = cartAdapter.getCheckedItems();
+        if (checkedItems != null && !checkedItems.isEmpty()) {
+            Intent intent = new Intent(getActivity(), CheckoutActivity.class);
+            startActivity(intent);
+        } else {
+            Toast.makeText(getContext(), "Please select items to checkout", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    private void updateCheckoutButtonState(List<Product> checkedItems) {
+        if (checkedItems == null || checkedItems.isEmpty()) {
+            checkoutButton.setEnabled(false);
+            checkoutButton.setAlpha(0.5f); // Optional: make it look disabled
+        } else {
+            checkoutButton.setEnabled(true);
+            checkoutButton.setAlpha(1.0f); // Optional: make it look enabled
+        }
+    }
 
 
     @Override
@@ -96,6 +130,7 @@ public class CartFragment extends Fragment {
         if (cartAdapter != null) {
             cartAdapter.notifyDataSetChanged();
             updateTotalPrice(cartAdapter.getCheckedItems());
+            updateCheckoutButtonState(cartAdapter.getCheckedItems());
         }
     }
 }

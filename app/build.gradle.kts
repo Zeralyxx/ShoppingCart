@@ -19,7 +19,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -41,20 +41,21 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.play.services.analytics.impl)
-    implementation("androidx.cardview:cardview:1.0.0") // Add this line
+    implementation("androidx.cardview:cardview:1.0.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-
-    implementation ("com.google.firebase:firebase-database:20.3.0") // Or the latest version
-    implementation ("com.google.firebase:firebase-auth:22.3.0") // Or the latest version
-    implementation ("com.google.firebase:firebase-firestore:24.10.1") // Or the latest version
-    implementation ("com.google.firebase:firebase-storage:20.3.0") // Or the latest version
-    implementation ("com.google.firebase:firebase-messaging:23.4.0") // Or the latest version
-    implementation ("com.google.firebase:firebase-analytics:21.5.0") // Or the latest version
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0")) // Use the latest version
+    implementation ("com.google.firebase:firebase-database")
+    implementation ("com.google.firebase:firebase-auth")
+    implementation ("com.google.firebase:firebase-firestore")
+    implementation ("com.google.firebase:firebase-storage")
+    implementation ("com.google.firebase:firebase-messaging")
+    implementation ("com.google.firebase:firebase-analytics")
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
+
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 }
