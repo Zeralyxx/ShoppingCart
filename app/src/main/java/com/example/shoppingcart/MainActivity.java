@@ -24,10 +24,11 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        //Para sa nav sa baba
+        // Set HomeFragment as the default
         replaceFragment(new HomeFragment());
         binding.bottomNavigationView.setBackground(null);
 
+        // Handle bottom navigation item selection
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
 
             int itemId = item.getItemId();
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
+        // Handle system bars insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -51,12 +53,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void replaceFragment(Fragment fragment){
+    // Function to replace the currently displayed fragment
+    private void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout, fragment);
         fragmentTransaction.commit();
     }
+
+    // Product class (as is, unchanged)
     public static class Product {
         private String name;
         private int imageResourceId;

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "874224973108",
+    "project_id": "shppingcart-1e46e",
+    "storage_bucket": "shppingcart-1e46e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:874224973108:android:d507d7f3c91b1748bea161",
+        "android_client_info": {
+          "package_name": "com.example.shoppingcart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBChL_rYx9ddyGX1dnbBJRkXAOrrhutGv0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
