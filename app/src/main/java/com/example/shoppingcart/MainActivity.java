@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         // Set HomeFragment as the default
-        replaceFragment(new HomeFragment());
+        replaceFragment(new HomeFragment(), R.id.frame_layout);
         binding.bottomNavigationView.setBackground(null);
 
         // Handle bottom navigation item selection
@@ -33,11 +33,11 @@ public class MainActivity extends AppCompatActivity {
 
             int itemId = item.getItemId();
             if (itemId == R.id.home) {
-                replaceFragment(new HomeFragment());
+                replaceFragment(new HomeFragment(), R.id.frame_layout);
             } else if (itemId == R.id.cart) {
-                replaceFragment(new CartFragment());
+                replaceFragment(new CartFragment(), R.id.frame_layout);
             } else if (itemId == R.id.account) {
-                replaceFragment(new AccountFragment());
+                replaceFragment(new AccountFragment(), R.id.frame_layout);
             }
 
             return true;
@@ -54,10 +54,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Function to replace the currently displayed fragment
-    private void replaceFragment(Fragment fragment) {
+    private void replaceFragment(Fragment fragment, int containerId) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frame_layout, fragment);
+        fragmentTransaction.replace(containerId, fragment);
         fragmentTransaction.commit();
     }
 

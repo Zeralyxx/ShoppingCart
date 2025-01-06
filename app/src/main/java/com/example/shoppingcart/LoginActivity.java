@@ -1,5 +1,7 @@
 package com.example.shoppingcart;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -20,6 +22,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private TextView validationTextView;
     private TextView createAccountTextView;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +31,7 @@ public class LoginActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        sharedPreferences = getSharedPreferences("login_prefs", Context.MODE_PRIVATE);
 
         usernameEditText = findViewById(R.id.usernameEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
@@ -63,9 +67,15 @@ public class LoginActivity extends AppCompatActivity {
 
                             if (password.equals(storedPassword)) {
                                 Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
-                                // Navigate to the main activity or the AccountFragment
+                                // Set the "logged in" state
+                                // Inside your login success logic
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putBoolean("isLoggedIn", true);
+                                editor.putString("username", username); // Assuming you also save the username
+                                editor.apply(); // Use apply() instead of commit()
+                                // Navigate to MainActivity
                                 startActivity(new android.content.Intent(this, MainActivity.class));
-                                finish(); // Close the login activity
+                                finish();
                             } else {
                                 Toast.makeText(this, "Incorrect password.", Toast.LENGTH_SHORT).show();
                             }
