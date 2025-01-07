@@ -1,26 +1,41 @@
 package com.example.shoppingcart;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
-
+import android.widget.Toast;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class AccountFragmentIn extends Fragment {
 
     private static final String TAG = "AccountFragmentIn";
     private SharedPreferences sharedPreferences;
     private TextView usernameTextView;
+    private ImageButton editProfileButton;
+    private String userId;
+    private ActivityResultLauncher<Intent> editProfileLauncher;
+    private FirebaseFirestore db;
+    private ListenerRegistration userListenerRegistration;
 
     @Nullable
     @Override
@@ -29,6 +44,8 @@ public class AccountFragmentIn extends Fragment {
         View view = inflater.inflate(R.layout.fragment_account_in, container, false);
         sharedPreferences = requireContext().getSharedPreferences("login_prefs", Context.MODE_PRIVATE);
         usernameTextView = view.findViewById(R.id.usernameTextView);
+        editProfileButton = view.findViewById(R.id.editProfileButton);
+        db = FirebaseFirestore.getInstance();
         return view;
     }
 
@@ -36,14 +53,87 @@ public class AccountFragmentIn extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d(TAG, "onViewCreated");
-        updateUI();
         view.findViewById(R.id.logoutButton).setOnClickListener(v -> showLogoutConfirmationDialog());
+        editProfileButton.setOnClickListener(v -> navigateToEditProfile());
+
+        // Initialize ActivityResultLauncher for EditProfileActivity
+        editProfileLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            // Refresh UI if profile was updated
+                            loadUsername();
+                        }
+                    }
+                }
+        );
     }
 
-    private void updateUI() {
-        String username = sharedPreferences.getString("username", "");
-        Log.d(TAG, "Username: " + username);
-        usernameTextView.setText(username);
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+        loadUsername(); // Load username on resume
+        startUserListener(); // Start listening for changes
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        stopUserListener(); // Stop listening for changes
+    }
+
+    private void loadUsername() {
+        userId = sharedPreferences.getString("userId", "");
+        if (userId != null && !userId.isEmpty()) {
+            db.collection("users").document(userId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String username = documentSnapshot.getString("username");
+                            Log.d(TAG, "Username from Firestore: " + username);
+                            usernameTextView.setText(username);
+                        } else {
+                            Log.e(TAG, "User document not found in Firestore");
+                            Toast.makeText(requireContext(), "User data not found.", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error loading username from Firestore", e);
+                        Toast.makeText(requireContext(), "Failed to load user data.", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Log.e(TAG, "User ID is null or empty.");
+            Toast.makeText(requireContext(), "User ID not found.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void startUserListener() {
+        userId = sharedPreferences.getString("userId", "");
+        if (userId != null && !userId.isEmpty()) {
+            userListenerRegistration = db.collection("users").document(userId)
+                    .addSnapshotListener((documentSnapshot, e) -> {
+                        if (e != null) {
+                            Log.e(TAG, "Listen failed.", e);
+                            return;
+                        }
+                        if (documentSnapshot != null && documentSnapshot.exists()) {
+                            String username = documentSnapshot.getString("username");
+                            Log.d(TAG, "Username changed (real-time): " + username);
+                            usernameTextView.setText(username);
+                        }
+                    });
+        }
+    }
+
+    private void stopUserListener() {
+        if (userListenerRegistration != null) {
+            userListenerRegistration.remove();
+            userListenerRegistration = null;
+        }
     }
 
     private void showLogoutConfirmationDialog() {
@@ -71,9 +161,16 @@ public class AccountFragmentIn extends Fragment {
         fragmentTransaction.commit();
     }
 
+    private void navigateToEditProfile() {
+        Intent intent = new Intent(requireContext(), EditProfileActivity.class);
+        intent.putExtra("userId", userId);
+        editProfileLauncher.launch(intent);
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         Log.d(TAG, "onDestroyView");
+        stopUserListener();
     }
 }

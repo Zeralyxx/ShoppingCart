@@ -10,7 +10,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -53,16 +55,29 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void createUser(String username, String password) {
-        db.collection("users").document(username).get()
+        db.collection("users")
+                .whereEqualTo("username", username)
+                .get()
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        if (task.getResult().exists()) {
+                        if (!task.getResult().isEmpty()) {
                             Toast.makeText(this, "Username already exists.", Toast.LENGTH_SHORT).show();
                         } else {
                             List<String> shoppingCart = new ArrayList<>();
-                            User user = new User(username, password, shoppingCart);
-                            db.collection("users").document(username).set(user)
-                                    .addOnSuccessListener(aVoid -> {
+                            Map<String, Object> user = new HashMap<>();
+                            user.put("username", username);
+                            user.put("password", password);
+                            user.put("name", ""); // Add default value for name
+                            user.put("gender", ""); // Add default value for gender
+                            user.put("birthday", ""); // Add default value for birthday
+                            user.put("phone", ""); // Add default value for phone
+                            user.put("email", ""); // Add default value for email
+                            user.put("profileImageUri", ""); // Add default value for profileImageUri
+                            user.put("shoppingCart", shoppingCart);
+
+                            db.collection("users")
+                                    .add(user)
+                                    .addOnSuccessListener(documentReference -> {
                                         Toast.makeText(this, "Account created successfully.", Toast.LENGTH_SHORT).show();
                                         clearFields();
                                         finish(); // Close the activity after successful account creation
@@ -81,20 +96,5 @@ public class SignupActivity extends AppCompatActivity {
         usernameEditText.setText("");
         passwordEditText.setText("");
         confirmPasswordEditText.setText("");
-    }
-
-    public static class User {
-        public String username;
-        public String password;
-        public List<String> shoppingCart;
-
-        public User() {
-        }
-
-        public User(String username, String password, List<String> shoppingCart) {
-            this.username = username;
-            this.password = password;
-            this.shoppingCart = shoppingCart;
-        }
     }
 }

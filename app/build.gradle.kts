@@ -44,6 +44,8 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.android.material:material:1.11.0")
     implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -57,7 +59,4 @@ dependencies {
     implementation ("com.google.firebase:firebase-analytics")
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
-
-    implementation ("com.github.bumptech.glide:glide:4.16.0")
-    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 }
