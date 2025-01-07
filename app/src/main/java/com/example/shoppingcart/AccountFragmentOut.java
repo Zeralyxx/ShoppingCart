@@ -14,9 +14,9 @@ import androidx.core.content.ContextCompat;
 public class AccountFragmentOut extends Fragment {
 
     private MaterialButton btnToReceive;
+    private MaterialButton btnToShip;
     private MaterialButton btnHistory;
     private MaterialButton btnCancelled;
-    private MaterialButton btnReturns;
     private Button aboutUsButton;
     private Button helpCenterButton;
     private Button settingsButton;
@@ -34,9 +34,9 @@ public class AccountFragmentOut extends Fragment {
 
         // Initialize views
         btnToReceive = view.findViewById(R.id.btnToReceive);
+        btnToShip = view.findViewById(R.id.btnToShip);
         btnHistory = view.findViewById(R.id.btnHistory);
         btnCancelled = view.findViewById(R.id.btnCancelled);
-        btnReturns = view.findViewById(R.id.btnReturns);
         aboutUsButton = view.findViewById(R.id.aboutUsButton);
         helpCenterButton = view.findViewById(R.id.helpCenterButton);
         settingsButton = view.findViewById(R.id.settingsButton);
@@ -54,9 +54,9 @@ public class AccountFragmentOut extends Fragment {
         });
 
         btnToReceive.setOnClickListener(v -> showToast("To Receive Button Clicked"));
+        btnToShip.setOnClickListener(v -> showToast("To Ship Button Clicked"));
         btnHistory.setOnClickListener(v -> showToast("History Button Clicked"));
         btnCancelled.setOnClickListener(v -> showToast("Cancelled Button Clicked"));
-        btnReturns.setOnClickListener(v -> showToast("Returns Button Clicked"));
         aboutUsButton.setOnClickListener(v -> showToast("About Us Button Clicked"));
         helpCenterButton.setOnClickListener(v -> showToast("Help Center Button Clicked"));
         settingsButton.setOnClickListener(v -> showToast("Settings Button Clicked"));
