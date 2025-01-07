@@ -38,6 +38,22 @@
         <activity
             android:name=".EditProfileActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ToReceiveActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ToShipActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CancelledActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".HistoryActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

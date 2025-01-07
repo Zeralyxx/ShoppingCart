@@ -22,7 +22,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
@@ -36,6 +36,10 @@ public class AccountFragmentIn extends Fragment {
     private ActivityResultLauncher<Intent> editProfileLauncher;
     private FirebaseFirestore db;
     private ListenerRegistration userListenerRegistration;
+    private MaterialButton btnToReceive;
+    private MaterialButton btnHistory;
+    private MaterialButton btnCancelled;
+    private MaterialButton btnToShip;
 
     @Nullable
     @Override
@@ -46,6 +50,13 @@ public class AccountFragmentIn extends Fragment {
         usernameTextView = view.findViewById(R.id.usernameTextView);
         editProfileButton = view.findViewById(R.id.editProfileButton);
         db = FirebaseFirestore.getInstance();
+
+        // Initialize My Orders buttons
+        btnToReceive = view.findViewById(R.id.btnToReceive);
+        btnHistory = view.findViewById(R.id.btnHistory);
+        btnCancelled = view.findViewById(R.id.btnCancelled);
+        btnToShip = view.findViewById(R.id.btnToShip);
+
         return view;
     }
 
@@ -55,6 +66,24 @@ public class AccountFragmentIn extends Fragment {
         Log.d(TAG, "onViewCreated");
         view.findViewById(R.id.logoutButton).setOnClickListener(v -> showLogoutConfirmationDialog());
         editProfileButton.setOnClickListener(v -> navigateToEditProfile());
+
+        // Set click listeners for My Orders buttons
+        btnToReceive.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ToReceiveActivity.class);
+            startActivity(intent);
+        });
+        btnToShip.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ToShipActivity.class);
+            startActivity(intent);
+        });
+        btnHistory.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), HistoryActivity.class);
+            startActivity(intent);
+        });
+        btnCancelled.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), CancelledActivity.class);
+            startActivity(intent);
+        });
 
         // Initialize ActivityResultLauncher for EditProfileActivity
         editProfileLauncher = registerForActivityResult(
