@@ -28,7 +28,7 @@ public class CartManager {
             }
         }
         // If the product is not in the cart, add it
-        cartItems.add(new Product(product.getName(), product.getPrice(), product.getImageResId(), product.getQuantity()));
+        cartItems.add(new Product(product.getName(), product.getPrice(), product.getImageResId(), product.getImageNum(), product.getQuantity()));
     }
 
     public List<Product> getCartItems() {

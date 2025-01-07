@@ -13,7 +13,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.shoppingcart.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements FragmentNavigation {
 
     ActivityMainBinding binding;
 
@@ -54,7 +54,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Function to replace the currently displayed fragment
-    private void replaceFragment(Fragment fragment, int containerId) {
+    @Override
+    public void replaceFragment(Fragment fragment, int containerId) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(containerId, fragment);

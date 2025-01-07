@@ -37,14 +37,14 @@ public class HomeFragment extends Fragment {
 
         // Initialize product list
         productList = new ArrayList<>();
-        productList.add(new Product("Pastil", 15, R.drawable.pastil));
-        productList.add(new Product("Rice", 10, R.drawable.rice));
-        productList.add(new Product("Hotdog", 10, R.drawable.hotdog));
-        productList.add(new Product("Coke", 15, R.drawable.coke));
-        productList.add(new Product("Sprite", 15, R.drawable.sprite));
-        productList.add(new Product("Food Container", 3, R.drawable.styro));
-        productList.add(new Product("Plastic Spoon", 1, R.drawable.spoon));
-        productList.add(new Product("Plastic Fork", 1, R.drawable.fork));
+        productList.add(new Product("Pastil", 15.0, R.drawable.pastil, 1, 1));
+        productList.add(new Product("Rice", 10.0, R.drawable.rice, 2, 1));
+        productList.add(new Product("Hotdog", 10.0, R.drawable.hotdog, 3, 1));
+        productList.add(new Product("Coke", 15.0, R.drawable.coke, 4, 1));
+        productList.add(new Product("Sprite", 15.0, R.drawable.sprite, 5, 1));
+        productList.add(new Product("Food Container", 3.0, R.drawable.styro, 6, 1));
+        productList.add(new Product("Plastic Spoon", 1.0, R.drawable.spoon, 7, 1));
+        productList.add(new Product("Plastic Fork", 1.0, R.drawable.fork, 8, 1));
 
         // Create a copy of the product list for filtering
         filteredList = new ArrayList<>(productList);

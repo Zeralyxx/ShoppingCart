@@ -44,7 +44,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         double totalPrice = cartItem.getPrice() * cartItem.getQuantity();
         holder.productPrice.setText("₱" + String.format("%.2f", totalPrice));
         holder.productImage.setImageResource(cartItem.getImageResId());
-        holder.productQuantity.setText("Qty: " + cartItem.getQuantity());
+        holder.productQuantity.setText("Qty: " + cartItem.getQuantity()); // Display the correct quantity
 
         // Set checkbox state
         holder.itemCheckbox.setChecked(checkedItems.contains(cartItem));

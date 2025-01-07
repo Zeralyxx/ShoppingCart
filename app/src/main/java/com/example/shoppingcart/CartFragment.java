@@ -23,6 +23,7 @@ public class CartFragment extends Fragment {
     private ImageButton removeButton;
     private CheckBox selectAllCheckbox;
     private TextView totalPriceTextView;
+    private TextView checkoutTotalPriceTextView;
     private Button checkoutButton;
 
     @Override

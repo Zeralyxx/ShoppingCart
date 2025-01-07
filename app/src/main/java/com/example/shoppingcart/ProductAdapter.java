@@ -59,8 +59,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
         holder.addToCartButton.setOnClickListener(v -> {
             Toast.makeText(context, "Added " + product.getName() + " to cart", Toast.LENGTH_SHORT).show();
-            Log.d("ProductAdapter", "Add to Cart clicked for " + product.getName());
-            cartManager.addToCart(new Product(product.getName(), product.getPrice(), product.getImageResId(), product.getQuantity())); // Add product to cart with updated quantity
+            Log.d("ProductAdapter", "Add to Cart clicked for " + product.getName() + ", quantity: " + product.getQuantity());
+            cartManager.addToCart(new Product(product.getName(), product.getPrice(), product.getImageResId(), product.getImageNum(), product.getQuantity())); // Add product to cart with correct imageNum and quantity
             product.setQuantity(1); // Reset quantity to 1
             holder.productQuantity.setText(String.valueOf(1)); // Update the displayed quantity
         });
