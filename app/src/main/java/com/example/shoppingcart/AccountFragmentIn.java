@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,6 +42,8 @@ public class AccountFragmentIn extends Fragment {
     private MaterialButton btnHistory;
     private MaterialButton btnCancelled;
     private MaterialButton btnToShip;
+    private Button helpCenterButton;
+    private Button aboutUsButton; // Add this
 
     @Nullable
     @Override
@@ -56,6 +60,8 @@ public class AccountFragmentIn extends Fragment {
         btnHistory = view.findViewById(R.id.btnHistory);
         btnCancelled = view.findViewById(R.id.btnCancelled);
         btnToShip = view.findViewById(R.id.btnToShip);
+        helpCenterButton = view.findViewById(R.id.helpCenterButton);
+        aboutUsButton = view.findViewById(R.id.aboutUsButton); // Initialize the aboutUsButton
 
         return view;
     }
@@ -84,6 +90,12 @@ public class AccountFragmentIn extends Fragment {
             Intent intent = new Intent(getActivity(), CancelledActivity.class);
             startActivity(intent);
         });
+
+        // Set click listener for Help Center button
+        helpCenterButton.setOnClickListener(v -> openHelpCenterLink());
+
+        // Set click listener for About Us button
+        aboutUsButton.setOnClickListener(v -> navigateToAboutUs());
 
         // Initialize ActivityResultLauncher for EditProfileActivity
         editProfileLauncher = registerForActivityResult(
@@ -194,6 +206,22 @@ public class AccountFragmentIn extends Fragment {
         Intent intent = new Intent(requireContext(), EditProfileActivity.class);
         intent.putExtra("userId", userId);
         editProfileLauncher.launch(intent);
+    }
+
+    private void openHelpCenterLink() {
+        String url = "https://www.facebook.com/messages/e2ee/t/7608263649229986";
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        try {
+            startActivity(intent);
+        } catch (android.content.ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), "No app found to open the link.", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "No app found to open the link", e);
+        }
+    }
+
+    private void navigateToAboutUs() {
+        Intent intent = new Intent(requireContext(), AboutUsActivity.class);
+        startActivity(intent);
     }
 
     @Override
