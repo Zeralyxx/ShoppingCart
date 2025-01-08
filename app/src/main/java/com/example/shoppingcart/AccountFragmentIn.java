@@ -209,7 +209,7 @@ public class AccountFragmentIn extends Fragment {
     }
 
     private void openHelpCenterLink() {
-        String url = "https://www.facebook.com/messages/e2ee/t/7608263649229986";
+        String url = "https://www.facebook.com/profile.php?id=61554025289323";
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         try {
             startActivity(intent);
