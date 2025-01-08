@@ -121,33 +121,37 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         cancelledOrder.put("cancellationDate", cancellationDate);
         cancelledOrder.put("documentId", product.getDocumentId());
 
+        // Log the documentId
+        Log.d(TAG, "cancelOrder: Document ID to delete: " + product.getDocumentId());
+
         // Add the cancelled order to the cancelled collection
         db.collection("cancelled")
                 .add(cancelledOrder)
                 .addOnSuccessListener(documentReference -> {
                     // Delete the document from the toShip collection
                     db.collection("toShip")
-                            .whereEqualTo("documentId", product.getDocumentId())
+                            .document(product.getDocumentId()) // Use document() instead of whereEqualTo()
                             .get()
-                            .addOnSuccessListener(queryDocumentSnapshots -> {
-                                if (!queryDocumentSnapshots.isEmpty()) {
-                                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                                        document.getReference().delete()
-                                                .addOnSuccessListener(aVoid -> {
-                                                    Log.d(TAG, "cancelOrder: Order cancelled and moved to cancelled collection");
-                                                    Toast.makeText(holder.itemView.getContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
-                                                    orderList.remove(position);
-                                                    notifyDataSetChanged();
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Log.e(TAG, "cancelOrder: Error deleting order from toShip collection.", e);
-                                                    Toast.makeText(holder.itemView.getContext(), "Error deleting order from toShip collection.", Toast.LENGTH_SHORT).show();
-                                                    holder.cancelButton.setEnabled(true);
-                                                    holder.cancelButton.setTextColor(Color.BLACK);
-                                                    holder.cancelButton.setText("Cancel");
-                                                    holder.preparingTextView.setText("Seller is preparing your package");
-                                                });
-                                    }
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    documentSnapshot.getReference().delete()
+                                            .addOnSuccessListener(aVoid -> {
+                                                Log.d(TAG, "cancelOrder: Order cancelled and moved to cancelled collection");
+                                                Toast.makeText(holder.itemView.getContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
+
+                                                // Remove the item from the local list and notify the adapter
+                                                orderList.remove(position);
+                                                notifyItemRemoved(position);
+                                                notifyItemRangeChanged(position, orderList.size());
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Log.e(TAG, "cancelOrder: Error deleting order from toShip collection.", e);
+                                                Toast.makeText(holder.itemView.getContext(), "Error deleting order from toShip collection.", Toast.LENGTH_SHORT).show();
+                                                holder.cancelButton.setEnabled(true);
+                                                holder.cancelButton.setTextColor(Color.BLACK);
+                                                holder.cancelButton.setText("Cancel");
+                                                holder.preparingTextView.setText("Seller is preparing your package");
+                                            });
                                 } else {
                                     Log.e(TAG, "cancelOrder: Document not found in toShip collection.");
                                     Toast.makeText(holder.itemView.getContext(), "Document not found in toShip collection.", Toast.LENGTH_SHORT).show();
@@ -156,7 +160,8 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                                     holder.cancelButton.setText("Cancel");
                                     holder.preparingTextView.setText("Seller is preparing your package");
                                 }
-                            }).addOnFailureListener(e -> {
+                            })
+                            .addOnFailureListener(e -> {
                                 Log.e(TAG, "cancelOrder: Error getting document from toShip collection.", e);
                                 Toast.makeText(holder.itemView.getContext(), "Error getting document from toShip collection.", Toast.LENGTH_SHORT).show();
                                 holder.cancelButton.setEnabled(true);
