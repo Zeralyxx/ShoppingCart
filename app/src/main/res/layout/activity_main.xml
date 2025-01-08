@@ -20,6 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_marginStart="-17dp"
+        android:layout_marginBottom="-100dp"
         android:layout_marginEnd="-10dp"
         android:background="@color/green"
         app:fabCradleMargin="10dp"
