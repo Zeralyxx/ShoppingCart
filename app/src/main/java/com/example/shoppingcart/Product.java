@@ -8,6 +8,10 @@ public class Product {
     private int quantity;
     private String documentId;
 
+    public Product() {
+        // This is the no-argument constructor
+    }
+
     public Product(String name, double price, int imageResId, int imageNum, int quantity) {
         this.name = name;
         this.price = price;
@@ -16,16 +20,37 @@ public class Product {
         this.quantity = quantity;
     }
 
+    // Getters and setters for all fields
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public double getPrice() {
         return price;
     }
 
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
     public int getImageResId() {
         return imageResId;
+    }
+
+    public void setImageResId(int imageResId) {
+        this.imageResId = imageResId;
+    }
+
+    public int getImageNum() {
+        return imageNum;
+    }
+
+    public void setImageNum(int imageNum) {
+        this.imageNum = imageNum;
     }
 
     public int getQuantity() {
@@ -34,10 +59,6 @@ public class Product {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-    }
-
-    public int getImageNum() {
-        return imageNum;
     }
 
     public String getDocumentId() {

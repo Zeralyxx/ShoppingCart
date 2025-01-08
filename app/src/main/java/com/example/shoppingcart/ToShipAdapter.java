@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.text.SimpleDateFormat;
@@ -27,14 +28,14 @@ import java.util.Map;
 public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipViewHolder> {
 
     private static final String TAG = "ToShipAdapter";
-    private List<Product> orderList;
     private FirebaseFirestore db;
     private Context context;
     private SharedPreferences sharedPreferences;
+    private List<DocumentSnapshot> documentSnapshots;
 
-    public ToShipAdapter(List<Product> orderList, Context context) {
-        this.orderList = orderList;
+    public ToShipAdapter(Context context, List<DocumentSnapshot> documentSnapshots) {
         this.context = context;
+        this.documentSnapshots = documentSnapshots;
         db = FirebaseFirestore.getInstance();
         sharedPreferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE);
     }
@@ -48,7 +49,33 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
 
     @Override
     public void onBindViewHolder(@NonNull ToShipViewHolder holder, int position) {
-        Product product = orderList.get(position);
+        if (documentSnapshots == null || documentSnapshots.isEmpty() || position >= documentSnapshots.size()) {
+            Log.e(TAG, "Invalid documentSnapshots or position: " + position);
+            return;
+        }
+
+        DocumentSnapshot document = documentSnapshots.get(position);
+        if (document == null) {
+            Log.e(TAG, "DocumentSnapshot is null at position: " + position);
+            return;
+        }
+
+        // Extract data from DocumentSnapshot
+        String productName = document.getString("productName");
+        Double price = document.getDouble("price");
+        Long quantity = document.getLong("quantity");
+        Long imageNum = document.getLong("imageNum");
+
+        if (productName == null || price == null || quantity == null || imageNum == null) {
+            Log.e(TAG, "One or more fields are null in DocumentSnapshot at position: " + position);
+            return;
+        }
+
+        int imageResourceId = getImageResource(imageNum.intValue());
+
+        Product product = new Product(productName, price, imageResourceId, imageNum.intValue(), quantity.intValue());
+        product.setDocumentId(document.getId());
+
         holder.productNameTextView.setText(product.getName());
         holder.productPriceTextView.setText("₱" + String.format("%.2f", product.getPrice()));
         holder.productQuantityTextView.setText("x" + product.getQuantity());
@@ -68,7 +95,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
 
         // Check if the item is already cancelled
         db.collection("cancelled")
-                .whereEqualTo("documentId", product.getDocumentId())
+                .whereEqualTo("documentId", document.getId())
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
@@ -76,27 +103,48 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                         holder.cancelButton.setEnabled(false);
                         holder.cancelButton.setTextColor(Color.GRAY);
                         holder.cancelButton.setText("Cancelled");
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String cancellationDate = document.getString("cancellationDate");
+                        for (QueryDocumentSnapshot doc : task.getResult()) {
+                            String cancellationDate = doc.getString("cancellationDate");
                             holder.preparingTextView.setText("Cancelled on: " + cancellationDate);
                         }
                     } else {
                         // Item is not cancelled, set up the cancel button listener
-                        holder.cancelButton.setOnClickListener(v -> showCancelConfirmationDialog(holder, product, position));
+                        holder.cancelButton.setOnClickListener(v -> showCancelConfirmationDialog(holder, product, document.getId(), position));
                     }
                 });
     }
 
-    private void showCancelConfirmationDialog(ToShipViewHolder holder, Product product, int position) {
+    private int getImageResource(int imageNum) {
+        if (imageNum == 1) {
+            return R.drawable.pastil;
+        } else if (imageNum == 2) {
+            return R.drawable.rice;
+        } else if (imageNum == 3) {
+            return R.drawable.hotdog;
+        } else if (imageNum == 4) {
+            return R.drawable.coke;
+        } else if (imageNum == 5) {
+            return R.drawable.sprite;
+        } else if (imageNum == 6) {
+            return R.drawable.styro;
+        } else if (imageNum == 7) {
+            return R.drawable.spoon;
+        } else if (imageNum == 8) {
+            return R.drawable.fork;
+        }
+        return R.drawable.ic_launcher_foreground;
+    }
+
+    private void showCancelConfirmationDialog(ToShipViewHolder holder, Product product, String documentId, int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(holder.itemView.getContext());
         builder.setTitle("Cancel Order");
         builder.setMessage("Are you sure you want to cancel this order?");
-        builder.setPositiveButton("Yes", (dialog, which) -> cancelOrder(holder, product, position));
+        builder.setPositiveButton("Yes", (dialog, which) -> cancelOrder(holder, product, documentId, position));
         builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
-    private void cancelOrder(ToShipViewHolder holder, Product product, int position) {
+    private void cancelOrder(ToShipViewHolder holder, Product product, String documentId, int position) {
         // Get the current date and time
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         String cancellationDate = sdf.format(new Date());
@@ -119,10 +167,10 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         cancelledOrder.put("price", product.getPrice());
         cancelledOrder.put("quantity", product.getQuantity());
         cancelledOrder.put("cancellationDate", cancellationDate);
-        cancelledOrder.put("documentId", product.getDocumentId());
+        cancelledOrder.put("documentId", documentId);
 
         // Log the documentId
-        Log.d(TAG, "cancelOrder: Document ID to delete: " + product.getDocumentId());
+        Log.d(TAG, "cancelOrder: Document ID to delete: " + documentId);
 
         // Add the cancelled order to the cancelled collection
         db.collection("cancelled")
@@ -130,40 +178,15 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                 .addOnSuccessListener(documentReference -> {
                     // Delete the document from the toShip collection
                     db.collection("toShip")
-                            .document(product.getDocumentId()) // Use document() instead of whereEqualTo()
-                            .get()
-                            .addOnSuccessListener(documentSnapshot -> {
-                                if (documentSnapshot.exists()) {
-                                    documentSnapshot.getReference().delete()
-                                            .addOnSuccessListener(aVoid -> {
-                                                Log.d(TAG, "cancelOrder: Order cancelled and moved to cancelled collection");
-                                                Toast.makeText(holder.itemView.getContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
-
-                                                // Remove the item from the local list and notify the adapter
-                                                orderList.remove(position);
-                                                notifyItemRemoved(position);
-                                                notifyItemRangeChanged(position, orderList.size());
-                                            })
-                                            .addOnFailureListener(e -> {
-                                                Log.e(TAG, "cancelOrder: Error deleting order from toShip collection.", e);
-                                                Toast.makeText(holder.itemView.getContext(), "Error deleting order from toShip collection.", Toast.LENGTH_SHORT).show();
-                                                holder.cancelButton.setEnabled(true);
-                                                holder.cancelButton.setTextColor(Color.BLACK);
-                                                holder.cancelButton.setText("Cancel");
-                                                holder.preparingTextView.setText("Seller is preparing your package");
-                                            });
-                                } else {
-                                    Log.e(TAG, "cancelOrder: Document not found in toShip collection.");
-                                    Toast.makeText(holder.itemView.getContext(), "Document not found in toShip collection.", Toast.LENGTH_SHORT).show();
-                                    holder.cancelButton.setEnabled(true);
-                                    holder.cancelButton.setTextColor(Color.BLACK);
-                                    holder.cancelButton.setText("Cancel");
-                                    holder.preparingTextView.setText("Seller is preparing your package");
-                                }
+                            .document(documentId)
+                            .delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "cancelOrder: Order cancelled and moved to cancelled collection");
+                                Toast.makeText(holder.itemView.getContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
                             })
                             .addOnFailureListener(e -> {
-                                Log.e(TAG, "cancelOrder: Error getting document from toShip collection.", e);
-                                Toast.makeText(holder.itemView.getContext(), "Error getting document from toShip collection.", Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, "cancelOrder: Error deleting order from toShip collection.", e);
+                                Toast.makeText(holder.itemView.getContext(), "Error deleting order from toShip collection.", Toast.LENGTH_SHORT).show();
                                 holder.cancelButton.setEnabled(true);
                                 holder.cancelButton.setTextColor(Color.BLACK);
                                 holder.cancelButton.setText("Cancel");
@@ -182,7 +205,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
 
     @Override
     public int getItemCount() {
-        return orderList.size();
+        return documentSnapshots != null ? documentSnapshots.size() : 0;
     }
 
     public static class ToShipViewHolder extends RecyclerView.ViewHolder {
@@ -200,7 +223,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
             productPriceTextView = itemView.findViewById(R.id.productPriceTextView);
             productQuantityTextView = itemView.findViewById(R.id.productQuantityTextView);
             preparingTextView = itemView.findViewById(R.id.preparingTextView);
-            cancelButton= itemView.findViewById(R.id.cancelButton);
+            cancelButton = itemView.findViewById(R.id.cancelButton);
         }
     }
 }
