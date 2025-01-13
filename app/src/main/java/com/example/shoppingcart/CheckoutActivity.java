@@ -54,7 +54,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
         // Initialize checkout adapter
         List<Product> cartItems = cartManager.getCartItems();
-        checkoutAdapter = new CheckoutAdapter(cartItems);
+        checkoutAdapter = new CheckoutAdapter(this, cartItems);
         checkoutRecyclerView.setAdapter(checkoutAdapter);
 
         // Initialize back button

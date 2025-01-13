@@ -103,6 +103,10 @@ public class HistoryActivity extends AppCompatActivity {
             return R.drawable.spoon;
         } else if (imageNum == 8) {
             return R.drawable.fork;
+        } else if (imageNum == 9) {
+            return R.drawable.chicken;
+        } else if (imageNum == 10) {
+            return R.drawable.kwek;
         }
         return R.drawable.ic_launcher_foreground; // Default image
     }

@@ -1,5 +1,7 @@
 package com.example.shoppingcart;
 
+import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +14,12 @@ import java.util.List;
 
 public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.CheckoutViewHolder> {
 
+    private static final String TAG = "CheckoutAdapter";
+    private Context context;
     private List<Product> productList;
 
-    public CheckoutAdapter(List<Product> productList) {
+    public CheckoutAdapter(Context context, List<Product> productList) {
+        this.context = context;
         this.productList = productList;
     }
 
@@ -27,22 +32,60 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
 
     @Override
     public void onBindViewHolder(@NonNull CheckoutViewHolder holder, int position) {
+        if (productList == null || productList.isEmpty() || position >= productList.size()) {
+            Log.e(TAG, "Invalid productList or position: " + position);
+            return;
+        }
+
         Product product = productList.get(position);
+        if (product == null) {
+            Log.e(TAG, "Product is null at position: " + position);
+            return;
+        }
+
         holder.productNameTextView.setText(product.getName());
         holder.productPriceTextView.setText("₱" + String.format("%.2f", product.getPrice()));
         holder.productQuantityTextView.setText("x" + product.getQuantity());
 
+        int imageResourceId = getImageResource(product.getImageNum());
+
         // Load product image using Glide with resource ID
         Glide.with(holder.itemView.getContext())
-                .load(product.getImageResId()) // Load image using resource ID
-                .placeholder(R.drawable.ic_launcher_background) // Placeholder image while loading
-                .error(R.drawable.ic_launcher_background) // Error image if loading fails
+                .load(imageResourceId)
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
                 .into(holder.productImageView);
     }
 
+    private int getImageResource(int imageNum) {
+        if (imageNum == 1) {
+            return R.drawable.pastil;
+        } else if (imageNum == 2) {
+            return R.drawable.rice;
+        } else if (imageNum == 3) {
+            return R.drawable.hotdog;
+        } else if (imageNum == 4) {
+            return R.drawable.coke;
+        } else if (imageNum == 5) {
+            return R.drawable.sprite1;
+        } else if (imageNum == 6) {
+            return R.drawable.styro;
+        } else if (imageNum == 7) {
+            return R.drawable.spoon1;
+        } else if (imageNum == 8) {
+            return R.drawable.fork;
+        } else if (imageNum == 9) {
+            return R.drawable.chicken;
+        } else if (imageNum == 10) {
+            return R.drawable.kwek;
+        }
+        return R.drawable.ic_launcher_foreground; // Default image
+    }
+
+
     @Override
     public int getItemCount() {
-        return productList.size();
+        return productList != null ? productList.size() : 0;
     }
 
     public static class CheckoutViewHolder extends RecyclerView.ViewHolder {

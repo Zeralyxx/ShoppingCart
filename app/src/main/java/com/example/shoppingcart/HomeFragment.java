@@ -45,6 +45,9 @@ public class HomeFragment extends Fragment {
         productList.add(new Product("Food Container", 3.0, R.drawable.styro, 6, 1));
         productList.add(new Product("Plastic Spoon", 1.0, R.drawable.spoon, 7, 1));
         productList.add(new Product("Plastic Fork", 1.0, R.drawable.fork, 8, 1));
+        productList.add(new Product("Fried Chicken", 10.0, R.drawable.chicken, 9, 1));
+        productList.add(new Product("Kwek-Kwek", 3.0, R.drawable.kwek, 10, 1));
+
 
         // Create a copy of the product list for filtering
         filteredList = new ArrayList<>(productList);

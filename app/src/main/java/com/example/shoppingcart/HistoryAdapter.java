@@ -34,12 +34,39 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         holder.productQuantityTextView.setText("x" + product.getQuantity());
         holder.receivedDateTextView.setText("Received on: " + historyProduct.getReceivedDate());
 
+        int imageResourceId = getImageResource(product.getImageNum());
+
         // Load product image using Glide with resource ID
         Glide.with(holder.itemView.getContext())
-                .load(product.getImageResId())
+                .load(imageResourceId)
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .into(holder.productImageView);
+    }
+
+    private int getImageResource(int imageNum) {
+        if (imageNum == 1) {
+            return R.drawable.pastil;
+        } else if (imageNum == 2) {
+            return R.drawable.rice;
+        } else if (imageNum == 3) {
+            return R.drawable.hotdog;
+        } else if (imageNum == 4) {
+            return R.drawable.coke;
+        } else if (imageNum == 5) {
+            return R.drawable.sprite1;
+        } else if (imageNum == 6) {
+            return R.drawable.styro;
+        } else if (imageNum == 7) {
+            return R.drawable.spoon1;
+        } else if (imageNum == 8) {
+            return R.drawable.fork;
+        } else if (imageNum == 9) {
+            return R.drawable.chicken;
+        } else if (imageNum == 10) {
+            return R.drawable.kwek;
+        }
+        return R.drawable.ic_launcher_foreground;
     }
 
     @Override
