@@ -209,11 +209,11 @@ public class AccountFragmentIn extends Fragment {
     }
 
     private void openHelpCenterLink() {
-        String url = "https://www.facebook.com/profile.php?id=61554025289323";
+        String url = "https://www.facebook.com/messages/e2ee/t/7608263649229986";
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         try {
             startActivity(intent);
-        } catch (android.content.ActivityNotFoundException e) {
+        } catch (android.content.ActivityNotFoundException e){
             Toast.makeText(requireContext(), "No app found to open the link.", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "No app found to open the link", e);
         }

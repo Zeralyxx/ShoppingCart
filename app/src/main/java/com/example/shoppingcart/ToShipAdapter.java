@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +33,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
     private Context context;
     private SharedPreferences sharedPreferences;
     private List<DocumentSnapshot> documentSnapshots;
+    private Map<String, Boolean> transferStatus = new HashMap<>(); // Track transfer status
 
     public ToShipAdapter(Context context, List<DocumentSnapshot> documentSnapshots) {
         this.context = context;
@@ -65,6 +67,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         Double price = document.getDouble("price");
         Long quantity = document.getLong("quantity");
         Long imageNum = document.getLong("imageNum");
+        String documentId = document.getId();
 
         if (productName == null || price == null || quantity == null || imageNum == null) {
             Log.e(TAG, "One or more fields are null in DocumentSnapshot at position: " + position);
@@ -74,7 +77,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         int imageResourceId = getImageResource(imageNum.intValue());
 
         Product product = new Product(productName, price, imageResourceId, imageNum.intValue(), quantity.intValue());
-        product.setDocumentId(document.getId());
+        product.setDocumentId(documentId);
 
         holder.productNameTextView.setText(product.getName());
         holder.productPriceTextView.setText("₱" + String.format("%.2f", product.getPrice()));
@@ -95,7 +98,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
 
         // Check if the item is already cancelled
         db.collection("cancelled")
-                .whereEqualTo("documentId", document.getId())
+                .whereEqualTo("documentId", documentId)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
@@ -109,9 +112,18 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                         }
                     } else {
                         // Item is not cancelled, set up the cancel button listener
-                        holder.cancelButton.setOnClickListener(v -> showCancelConfirmationDialog(holder, product, document.getId(), position));
+                        holder.cancelButton.setOnClickListener(v -> showCancelConfirmationDialog(holder, product, documentId, position));
                     }
                 });
+
+        // Check if the item has already been transferred
+        if (!transferStatus.getOrDefault(documentId, false)) {
+            // Set a 10-second delay before transferring to "toReceive"
+            new Handler().postDelayed(() -> {
+                transferToReceive(holder, product, documentId);
+                transferStatus.put(documentId, true); // Mark as transferred
+            }, 10000); // 10 seconds delay
+        }
     }
 
     private int getImageResource(int imageNum) {
@@ -200,6 +212,43 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                     holder.cancelButton.setTextColor(Color.BLACK);
                     holder.cancelButton.setText("Cancel");
                     holder.preparingTextView.setText("Seller is preparing your package");
+                });
+    }
+
+    private void transferToReceive(ToShipViewHolder holder, Product product, String documentId) {
+        // Get the username from SharedPreferences
+        String username = sharedPreferences.getString("userId", "");
+
+        // Create a map for the toReceive order
+        Map<String, Object> toReceiveOrder = new HashMap<>();
+        toReceiveOrder.put("username", username);
+        toReceiveOrder.put("name", product.getName());
+        toReceiveOrder.put("imageNum", product.getImageNum());
+        toReceiveOrder.put("productName", product.getName());
+        toReceiveOrder.put("price", product.getPrice());
+        toReceiveOrder.put("quantity", product.getQuantity());
+        toReceiveOrder.put("documentId", documentId);
+
+        // Add the order to the toReceive collection
+        db.collection("toReceive")
+                .add(toReceiveOrder)
+                .addOnSuccessListener(documentReference -> {
+                    // Delete the document from the toShip collection
+                    db.collection("toShip")
+                            .document(documentId)
+                            .delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "transferToReceive: Order transferred to toReceive collection");
+                                Toast.makeText(holder.itemView.getContext(), "Order is on delivery", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "transferToReceive: Error deleting order from toShip collection.", e);
+                                Toast.makeText(holder.itemView.getContext(), "Error transferring order.", Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "transferToReceive: Error adding order to toReceive collection.", e);
+                    Toast.makeText(holder.itemView.getContext(), "Error transferring order.", Toast.LENGTH_SHORT).show();
                 });
     }
 
