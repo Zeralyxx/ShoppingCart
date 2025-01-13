@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,7 +32,8 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
     private Context context;
     private SharedPreferences sharedPreferences;
     private List<DocumentSnapshot> documentSnapshots;
-    private Map<String, Boolean> transferStatus = new HashMap<>(); // Track transfer status
+    private Map<String, Boolean> transferStatus = new HashMap<>();
+    private Map<String, Boolean> cancelStatus = new HashMap<>();
 
     public ToShipAdapter(Context context, List<DocumentSnapshot> documentSnapshots) {
         this.context = context;
@@ -67,7 +67,6 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         Double price = document.getDouble("price");
         Long quantity = document.getLong("quantity");
         Long imageNum = document.getLong("imageNum");
-        String documentId = document.getId();
 
         if (productName == null || price == null || quantity == null || imageNum == null) {
             Log.e(TAG, "One or more fields are null in DocumentSnapshot at position: " + position);
@@ -77,7 +76,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         int imageResourceId = getImageResource(imageNum.intValue());
 
         Product product = new Product(productName, price, imageResourceId, imageNum.intValue(), quantity.intValue());
-        product.setDocumentId(documentId);
+        product.setDocumentId(document.getId());
 
         holder.productNameTextView.setText(product.getName());
         holder.productPriceTextView.setText("₱" + String.format("%.2f", product.getPrice()));
@@ -96,33 +95,18 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         holder.cancelButton.setText("Cancel");
         holder.preparingTextView.setText("Seller is preparing your package");
 
-        // Check if the item is already cancelled
-        db.collection("cancelled")
-                .whereEqualTo("documentId", documentId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
-                        // Item is already cancelled, disable the button and update the text
-                        holder.cancelButton.setEnabled(false);
-                        holder.cancelButton.setTextColor(Color.GRAY);
-                        holder.cancelButton.setText("Cancelled");
-                        for (QueryDocumentSnapshot doc : task.getResult()) {
-                            String cancellationDate = doc.getString("cancellationDate");
-                            holder.preparingTextView.setText("Cancelled on: " + cancellationDate);
-                        }
-                    } else {
-                        // Item is not cancelled, set up the cancel button listener
-                        holder.cancelButton.setOnClickListener(v -> showCancelConfirmationDialog(holder, product, documentId, position));
-                    }
-                });
+        // Set up the cancel button listener
+        holder.cancelButton.setOnClickListener(v -> showCancelConfirmationDialog(holder, product, document.getId()));
 
-        // Check if the item has already been transferred
-        if (!transferStatus.getOrDefault(documentId, false)) {
-            // Set a 10-second delay before transferring to "toReceive"
+        // Check if the item has already been transferred or cancelled
+        if (!transferStatus.getOrDefault(document.getId(), false) && !cancelStatus.getOrDefault(document.getId(), false)) {
+            // Transfer the item after 10 seconds
             new Handler().postDelayed(() -> {
-                transferToReceive(holder, product, documentId);
-                transferStatus.put(documentId, true); // Mark as transferred
-            }, 10000); // 10 seconds delay
+                if (!transferStatus.getOrDefault(document.getId(), false) && !cancelStatus.getOrDefault(document.getId(), false)) {
+                    transferToReceive(holder, product, document.getId());
+                    transferStatus.put(document.getId(), true);
+                }
+            }, 10000);
         }
     }
 
@@ -147,16 +131,16 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         return R.drawable.ic_launcher_foreground;
     }
 
-    private void showCancelConfirmationDialog(ToShipViewHolder holder, Product product, String documentId, int position) {
+    private void showCancelConfirmationDialog(ToShipViewHolder holder, Product product, String documentId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(holder.itemView.getContext());
-        builder.setTitle("Cancel Order");
+        builder.setTitle("Confirm Cancellation");
         builder.setMessage("Are you sure you want to cancel this order?");
-        builder.setPositiveButton("Yes", (dialog, which) -> cancelOrder(holder, product, documentId, position));
+        builder.setPositiveButton("Yes", (dialog, which) -> cancelOrder(holder, product, documentId));
         builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
-    private void cancelOrder(ToShipViewHolder holder, Product product, String documentId, int position) {
+    private void cancelOrder(ToShipViewHolder holder, Product product, String documentId) {
         // Get the current date and time
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         String cancellationDate = sdf.format(new Date());
@@ -181,9 +165,6 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         cancelledOrder.put("cancellationDate", cancellationDate);
         cancelledOrder.put("documentId", documentId);
 
-        // Log the documentId
-        Log.d(TAG, "cancelOrder: Document ID to delete: " + documentId);
-
         // Add the cancelled order to the cancelled collection
         db.collection("cancelled")
                 .add(cancelledOrder)
@@ -195,6 +176,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                             .addOnSuccessListener(aVoid -> {
                                 Log.d(TAG, "cancelOrder: Order cancelled and moved to cancelled collection");
                                 Toast.makeText(holder.itemView.getContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
+                                cancelStatus.put(documentId, true); // Mark as cancelled
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "cancelOrder: Error deleting order from toShip collection.", e);
@@ -238,17 +220,17 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                             .document(documentId)
                             .delete()
                             .addOnSuccessListener(aVoid -> {
-                                Log.d(TAG, "transferToReceive: Order transferred to toReceive collection");
-                                Toast.makeText(holder.itemView.getContext(), "Order is on delivery", Toast.LENGTH_SHORT).show();
+                                Log.d(TAG, "transferToReceive: Order moved to toReceive collection");
+                                Toast.makeText(holder.itemView.getContext(), "Order is on the way", Toast.LENGTH_SHORT).show();
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "transferToReceive: Error deleting order from toShip collection.", e);
-                                Toast.makeText(holder.itemView.getContext(), "Error transferring order.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(holder.itemView.getContext(), "Error moving order to toReceive collection.", Toast.LENGTH_SHORT).show();
                             });
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "transferToReceive: Error adding order to toReceive collection.", e);
-                    Toast.makeText(holder.itemView.getContext(), "Error transferring order.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(holder.itemView.getContext(), "Error moving order to toReceive collection.", Toast.LENGTH_SHORT).show();
                 });
     }
 

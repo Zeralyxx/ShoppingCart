@@ -132,7 +132,7 @@ public class ToReceiveAdapter extends RecyclerView.Adapter<ToReceiveAdapter.ToRe
         } else if (imageNum == 8) {
             return R.drawable.fork;
         }
-        return R.drawable.ic_launcher_foreground;
+        return R.drawable.ic_launcher_foreground; // Default image
     }
 
     private void showReceivedConfirmationDialog(ToReceiveViewHolder holder, Product product, String documentId, int position) {
