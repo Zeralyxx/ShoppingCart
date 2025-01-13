@@ -116,15 +116,6 @@ public class CheckoutActivity extends AppCompatActivity {
             // Get the cart items
             List<Product> cartItems = cartManager.getCartItems();
 
-            // Calculate the total price
-            double totalPrice = 0;
-            for (Product product : cartItems) {
-                totalPrice += product.getPrice() * product.getQuantity();
-            }
-
-            // Log the total price before placing the order
-            Log.d(TAG, "placeOrder: Total price before placing order: ₱" + String.format("%.2f", totalPrice));
-
             // Get the current user's username from SharedPreferences
             String userId = sharedPreferences.getString("userId", "");
             Log.d(TAG, "placeOrder: Retrieved userId from SharedPreferences: " + userId);
@@ -141,7 +132,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 order.put("imageNum", product.getImageNum()); // Use the correct imageNum
                 order.put("productName", product.getName());
                 order.put("quantity", product.getQuantity());
-                order.put("price", totalPrice); // Add the total price to the order
+                order.put("price", product.getPrice()); // Add the individual price to the order
 
                 db.collection("toShip")
                         .add(order)
