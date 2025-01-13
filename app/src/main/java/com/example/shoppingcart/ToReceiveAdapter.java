@@ -116,25 +116,25 @@ public class ToReceiveAdapter extends RecyclerView.Adapter<ToReceiveAdapter.ToRe
 
     private int getImageResource(int imageNum) {
         if (imageNum == 1) {
-            return R.drawable.pastil;
+            return R.drawable.pastil1;
         } else if (imageNum == 2) {
-            return R.drawable.rice;
+            return R.drawable.rice1;
         } else if (imageNum == 3) {
-            return R.drawable.hotdog;
+            return R.drawable.hotdog1;
         } else if (imageNum == 4) {
-            return R.drawable.coke;
+            return R.drawable.coke1;
         } else if (imageNum == 5) {
             return R.drawable.sprite1;
         } else if (imageNum == 6) {
-            return R.drawable.styro;
+            return R.drawable.styro1;
         } else if (imageNum == 7) {
             return R.drawable.spoon1;
         } else if (imageNum == 8) {
-            return R.drawable.fork;
+            return R.drawable.fork1;
         } else if (imageNum == 9) {
-            return R.drawable.chicken;
+            return R.drawable.chicken1;
         } else if (imageNum == 10) {
-            return R.drawable.kwek;
+            return R.drawable.kwek1;
         }
         return R.drawable.ic_launcher_foreground; // Default image
     }

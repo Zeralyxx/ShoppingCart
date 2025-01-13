@@ -27,7 +27,7 @@ import java.util.UUID;
 public class EditProfileActivity extends AppCompatActivity {
 
     private static final String TAG = "EditProfileActivity";
-    private EditText usernameEditText, birthdayEditText, phoneEditText, emailEditText;
+    private EditText usernameEditText, birthdayEditText, phoneEditText, emailEditText, addressEditText; // Added address EditText
     private Spinner genderSpinner;
     private ImageView profileImageView;
     private ImageButton saveButton, backButton;
@@ -57,6 +57,7 @@ public class EditProfileActivity extends AppCompatActivity {
         birthdayEditText = findViewById(R.id.birthdayEditText);
         phoneEditText = findViewById(R.id.phoneEditText);
         emailEditText = findViewById(R.id.emailEditText);
+        addressEditText = findViewById(R.id.addressEditText); // Initialize address EditText
         genderSpinner = findViewById(R.id.genderSpinner);
         profileImageView = findViewById(R.id.editProfileImageView);
         saveButton = findViewById(R.id.saveButton);
@@ -111,11 +112,13 @@ public class EditProfileActivity extends AppCompatActivity {
                             String birthday = documentSnapshot.getString("birthday");
                             String phone = documentSnapshot.getString("phone");
                             String email = documentSnapshot.getString("email");
+                            String address = documentSnapshot.getString("address"); // Get address
 
                             usernameEditText.setText(username);
                             birthdayEditText.setText(birthday);
                             phoneEditText.setText(phone);
                             emailEditText.setText(email);
+                            addressEditText.setText(address); // Set address
 
                             if (gender != null) {
                                 ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) genderSpinner.getAdapter();
@@ -150,6 +153,7 @@ public class EditProfileActivity extends AppCompatActivity {
         String birthday = birthdayEditText.getText().toString().trim();
         String phone = phoneEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
+        String address = addressEditText.getText().toString().trim(); // Get address
 
         if (userId == null) {
             Toast.makeText(this, "User ID not found.", Toast.LENGTH_SHORT).show();
@@ -157,13 +161,13 @@ public class EditProfileActivity extends AppCompatActivity {
         }
 
         if (imageUri != null) {
-            uploadImage(username, gender, birthday, phone, email);
+            uploadImage(username, gender, birthday, phone, email, address); // Pass address to uploadImage
         } else {
-            updateProfile(username, gender, birthday, phone, email, null);
+            updateProfile(username, gender, birthday, phone, email, address, null); // Pass address to updateProfile
         }
     }
 
-    private void uploadImage(String username, String gender, String birthday, String phone, String email) {
+    private void uploadImage(String username, String gender, String birthday, String phone, String email, String address) {
         if (userId == null) {
             Toast.makeText(this, "User ID not found.", Toast.LENGTH_SHORT).show();
             return;
@@ -176,7 +180,7 @@ public class EditProfileActivity extends AppCompatActivity {
         uploadTask.addOnSuccessListener(taskSnapshot -> {
             imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                 String imageUrl = uri.toString();
-                updateProfile(username, gender, birthday, phone, email, imageUrl);
+                updateProfile(username, gender, birthday, phone, email, address, imageUrl); // Pass address to updateProfile
             }).addOnFailureListener(e -> {
                 Log.e(TAG, "Failed to get download URL", e);
                 Toast.makeText(this, "Failed to get image URL.", Toast.LENGTH_SHORT).show();
@@ -187,7 +191,7 @@ public class EditProfileActivity extends AppCompatActivity {
         });
     }
 
-    private void updateProfile(String username, String gender, String birthday, String phone, String email, String imageUrl) {
+    private void updateProfile(String username, String gender, String birthday, String phone, String email, String address, String imageUrl) {
         if (userId == null) {
             Toast.makeText(this, "User ID not found.", Toast.LENGTH_SHORT).show();
             return;
@@ -200,6 +204,7 @@ public class EditProfileActivity extends AppCompatActivity {
                         "birthday", birthday,
                         "phone", phone,
                         "email", email,
+                        "address", address, // Update address
                         "profileImageUrl", imageUrl
                 )
                 .addOnSuccessListener(aVoid -> {

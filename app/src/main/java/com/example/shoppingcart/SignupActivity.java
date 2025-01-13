@@ -40,6 +40,7 @@ public class SignupActivity extends AppCompatActivity {
             String username = usernameEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
             String confirmPassword = confirmPasswordEditText.getText().toString().trim();
+            //String address = addressEditText.getText().toString().trim(); // Get address
 
             if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
                 validationTextView.setVisibility(View.VISIBLE);
@@ -49,7 +50,7 @@ public class SignupActivity extends AppCompatActivity {
                 validationTextView.setText("Passwords do not match.");
             } else {
                 validationTextView.setVisibility(View.GONE);
-                createUser(username, password);
+                createUser(username, password); // Pass address to createUser
             }
         });
     }
@@ -67,20 +68,21 @@ public class SignupActivity extends AppCompatActivity {
                             Map<String, Object> user = new HashMap<>();
                             user.put("username", username);
                             user.put("password", password);
-                            user.put("name", ""); // Add default value for name
-                            user.put("gender", ""); // Add default value for gender
-                            user.put("birthday", ""); // Add default value for birthday
-                            user.put("phone", ""); // Add default value for phone
-                            user.put("email", ""); // Add default value for email
-                            user.put("profileImageUri", ""); // Add default value for profileImageUri
+                            user.put("name", "");
+                            user.put("gender", "");
+                            user.put("birthday", "");
+                            user.put("phone", "");
+                            user.put("email", "");
+                            user.put("profileImageUri", "");
                             user.put("shoppingCart", shoppingCart);
+                            user.put("address", ""); // Add blank address to user data
 
                             db.collection("users")
                                     .add(user)
                                     .addOnSuccessListener(documentReference -> {
                                         Toast.makeText(this, "Account created successfully.", Toast.LENGTH_SHORT).show();
                                         clearFields();
-                                        finish(); // Close the activity after successful account creation
+                                        finish();
                                     })
                                     .addOnFailureListener(e -> {
                                         Toast.makeText(this, "Error creating account.", Toast.LENGTH_SHORT).show();

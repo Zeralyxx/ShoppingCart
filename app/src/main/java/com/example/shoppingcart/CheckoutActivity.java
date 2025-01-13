@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import java.util.List;
 import com.google.firebase.auth.FirebaseAuth;
 import java.util.HashMap;
@@ -32,6 +33,8 @@ public class CheckoutActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private SharedPreferences sharedPreferences;
+    private TextView addressTextView; // Added address TextView
+    private ListenerRegistration addressListener; // Listener for address changes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +72,9 @@ public class CheckoutActivity extends AppCompatActivity {
         paymentRadioGroup = findViewById(R.id.paymentRadioGroup);
         placeOrderButton = findViewById(R.id.placeOrderButton);
 
+        // Initialize address text view
+        addressTextView = findViewById(R.id.addressTextView); // Initialize address TextView
+
         // Set initial state of the place order button
         updatePlaceOrderButtonState();
 
@@ -83,7 +89,17 @@ public class CheckoutActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        updateTotalPrice(); // Update total price when the activity is started
+        updateTotalPrice();
+        loadAddress();
+        setupAddressListener(); // Start listening for address changes
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (addressListener != null) {
+            addressListener.remove(); // Stop listening for address changes
+        }
     }
 
     private void updateTotalPrice() {
@@ -103,6 +119,56 @@ public class CheckoutActivity extends AppCompatActivity {
         } else {
             placeOrderButton.setEnabled(true);
             placeOrderButton.setAlpha(1.0f); // Optional: make it look enabled
+        }
+    }
+
+    private void loadAddress() {
+        String userId = sharedPreferences.getString("userId", null);
+        if (userId != null) {
+            db.collection("users").document(userId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String address = documentSnapshot.getString("address");
+                            if (address != null && !address.isEmpty()) {
+                                addressTextView.setText("Address: " + address);
+                            } else {
+                                addressTextView.setText("Address: Not set");
+                            }
+                        } else {
+                            addressTextView.setText("Address: Not set");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error loading address", e);
+                        addressTextView.setText("Address: Not set");
+                    });
+        } else {
+            Log.e(TAG, "User ID is null.");
+            addressTextView.setText("Address: Not set");
+        }
+    }
+
+    private void setupAddressListener() {
+        String userId = sharedPreferences.getString("userId", null);
+        if (userId != null) {
+            addressListener = db.collection("users").document(userId)
+                    .addSnapshotListener((documentSnapshot, e) -> {
+                        if (e != null) {
+                            Log.e(TAG, "Listen failed.", e);
+                            return;
+                        }
+                        if (documentSnapshot != null && documentSnapshot.exists()) {
+                            String address = documentSnapshot.getString("address");
+                            if (address != null && !address.isEmpty()) {
+                                addressTextView.setText("Address: " + address);
+                            } else {
+                                addressTextView.setText("Address: Not set");
+                            }
+                        } else {
+                            addressTextView.setText("Address: Not set");
+                        }
+                    });
         }
     }
 

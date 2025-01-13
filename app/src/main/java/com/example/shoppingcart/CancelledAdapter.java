@@ -34,9 +34,12 @@ public class CancelledAdapter extends RecyclerView.Adapter<CancelledAdapter.Canc
         holder.productQuantityTextView.setText("x" + product.getQuantity());
         holder.cancellationDateTextView.setText("Cancelled on: " + cancelledProduct.getCancellationDate());
 
+        // Get the image resource ID based on imageNum
+        int imageResId = getImageResource(product.getImageNum());
+
         // Load product image using Glide with resource ID
         Glide.with(holder.itemView.getContext())
-                .load(product.getImageResId())
+                .load(imageResId)
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .into(holder.productImageView);
@@ -45,6 +48,31 @@ public class CancelledAdapter extends RecyclerView.Adapter<CancelledAdapter.Canc
     @Override
     public int getItemCount() {
         return cancelledOrderList.size();
+    }
+
+    private int getImageResource(int imageNum) {
+        if (imageNum == 1) {
+            return R.drawable.pastil1;
+        } else if (imageNum == 2) {
+            return R.drawable.rice1;
+        } else if (imageNum == 3) {
+            return R.drawable.hotdog1;
+        } else if (imageNum == 4) {
+            return R.drawable.coke1;
+        } else if (imageNum == 5) {
+            return R.drawable.sprite1;
+        } else if (imageNum == 6) {
+            return R.drawable.styro1;
+        } else if (imageNum == 7) {
+            return R.drawable.spoon1;
+        } else if (imageNum == 8) {
+            return R.drawable.fork1;
+        } else if (imageNum == 9) {
+            return R.drawable.chicken1;
+        } else if (imageNum == 10) {
+            return R.drawable.kwek1;
+        }
+        return R.drawable.ic_launcher_foreground; // Default image
     }
 
     public static class CancelledViewHolder extends RecyclerView.ViewHolder {
