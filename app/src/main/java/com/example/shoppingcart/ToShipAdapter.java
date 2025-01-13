@@ -18,12 +18,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipViewHolder> {
 
@@ -32,7 +35,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
     private Context context;
     private SharedPreferences sharedPreferences;
     private List<DocumentSnapshot> documentSnapshots;
-    private Map<String, Boolean> transferStatus = new HashMap<>();
+    private Set<String> transferredItems;
     private Map<String, Boolean> cancelStatus = new HashMap<>();
 
     public ToShipAdapter(Context context, List<DocumentSnapshot> documentSnapshots) {
@@ -40,6 +43,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         this.documentSnapshots = documentSnapshots;
         db = FirebaseFirestore.getInstance();
         sharedPreferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE);
+        transferredItems = getTransferredItemsFromPrefs();
     }
 
     @NonNull
@@ -99,14 +103,26 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
         holder.cancelButton.setOnClickListener(v -> showCancelConfirmationDialog(holder, product, document.getId()));
 
         // Check if the item has already been transferred or cancelled
-        if (!transferStatus.getOrDefault(document.getId(), false) && !cancelStatus.getOrDefault(document.getId(), false)) {
-            // Transfer the item after 10 seconds
-            new Handler().postDelayed(() -> {
-                if (!transferStatus.getOrDefault(document.getId(), false) && !cancelStatus.getOrDefault(document.getId(), false)) {
-                    transferToReceive(holder, product, document.getId());
-                    transferStatus.put(document.getId(), true);
-                }
-            }, 10000);
+        if (!transferredItems.contains(document.getId()) && !cancelStatus.containsKey(document.getId())) {
+            // Check if the item has already been transferred to "toReceive"
+            db.collection("toReceive")
+                    .whereEqualTo("documentId", document.getId())
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && task.getResult() != null && task.getResult().isEmpty()) {
+                            // Transfer the item after 10 seconds
+                            new Handler().postDelayed(() -> {
+                                if (!transferredItems.contains(document.getId()) && !cancelStatus.containsKey(document.getId())) {
+                                    transferToReceive(holder, product, document.getId());
+                                    transferredItems.add(document.getId());
+                                    saveTransferredItemsToPrefs();
+                                }
+                            }, 10000);
+                        } else {
+                            transferredItems.add(document.getId());
+                            saveTransferredItemsToPrefs();
+                        }
+                    });
         }
     }
 
@@ -171,8 +187,7 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                 .addOnSuccessListener(documentReference -> {
                     // Delete the document from the toShip collection
                     db.collection("toShip")
-                            .document(documentId)
-                            .delete()
+                            .document(documentId).delete()
                             .addOnSuccessListener(aVoid -> {
                                 Log.d(TAG, "cancelOrder: Order cancelled and moved to cancelled collection");
                                 Toast.makeText(holder.itemView.getContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
@@ -232,6 +247,31 @@ public class ToShipAdapter extends RecyclerView.Adapter<ToShipAdapter.ToShipView
                     Log.e(TAG, "transferToReceive: Error adding order to toReceive collection.", e);
                     Toast.makeText(holder.itemView.getContext(), "Error moving order to toReceive collection.", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private Set<String> getTransferredItemsFromPrefs() {
+        String serializedSet = sharedPreferences.getString("transferred_items", "");
+        if (serializedSet.isEmpty()) {
+            return new HashSet<>();
+        }
+        String[] items = serializedSet.split(",");
+        Set<String> set = new HashSet<>();
+        for (String item : items) {
+            set.add(item);
+        }
+        return set;
+    }
+
+    private void saveTransferredItemsToPrefs() {
+        StringBuilder sb = new StringBuilder();
+        for (String item : transferredItems) {
+            sb.append(item).append(",");
+        }
+        String serializedSet = sb.toString();
+        if (serializedSet.endsWith(",")) {
+            serializedSet = serializedSet.substring(0, serializedSet.length() - 1);
+        }
+        sharedPreferences.edit().putString("transferred_items", serializedSet).apply();
     }
 
     @Override
