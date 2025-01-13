@@ -2,6 +2,7 @@ package com.example.shoppingcart;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -35,6 +36,8 @@ public class CheckoutActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private TextView addressTextView; // Added address TextView
     private ListenerRegistration addressListener; // Listener for address changes
+    private boolean isAddressSet = false; // Flag to track if address is set
+    private ImageButton editProfileButton; // Added edit profile button
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +78,13 @@ public class CheckoutActivity extends AppCompatActivity {
         // Initialize address text view
         addressTextView = findViewById(R.id.addressTextView); // Initialize address TextView
 
+        // Initialize edit profile button
+        editProfileButton = findViewById(R.id.editProfileButton); // Initialize edit profile button
+        editProfileButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EditProfileActivity.class);
+            startActivity(intent);
+        });
+
         // Set initial state of the place order button
         updatePlaceOrderButtonState();
 
@@ -113,7 +123,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void updatePlaceOrderButtonState() {
         int selectedRadioButtonId = paymentRadioGroup.getCheckedRadioButtonId();
-        if (selectedRadioButtonId == -1) {
+        if (selectedRadioButtonId == -1 || !isAddressSet) {
             placeOrderButton.setEnabled(false);
             placeOrderButton.setAlpha(0.5f); // Optional: make it look disabled
         } else {
@@ -132,20 +142,33 @@ public class CheckoutActivity extends AppCompatActivity {
                             String address = documentSnapshot.getString("address");
                             if (address != null && !address.isEmpty()) {
                                 addressTextView.setText("Address: " + address);
+                                addressTextView.setTextColor(Color.BLACK); // Set color to black
+                                isAddressSet = true; // Set flag to true
                             } else {
                                 addressTextView.setText("Address: Not set");
+                                addressTextView.setTextColor(Color.RED); // Set color to red
+                                isAddressSet = false; // Set flag to false
                             }
                         } else {
                             addressTextView.setText("Address: Not set");
+                            addressTextView.setTextColor(Color.RED); // Set color to red
+                            isAddressSet = false; // Set flag to false
                         }
+                        updatePlaceOrderButtonState(); // Update button state after loading address
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error loading address", e);
                         addressTextView.setText("Address: Not set");
+                        addressTextView.setTextColor(Color.RED); // Set color to red
+                        isAddressSet = false; // Set flag to false
+                        updatePlaceOrderButtonState(); // Update button state on failure
                     });
         } else {
             Log.e(TAG, "User ID is null.");
             addressTextView.setText("Address: Not set");
+            addressTextView.setTextColor(Color.RED); // Set color to red
+            isAddressSet = false; // Set flag to false
+            updatePlaceOrderButtonState(); // Update button state if user ID is null
         }
     }
 
@@ -162,12 +185,19 @@ public class CheckoutActivity extends AppCompatActivity {
                             String address = documentSnapshot.getString("address");
                             if (address != null && !address.isEmpty()) {
                                 addressTextView.setText("Address: " + address);
+                                addressTextView.setTextColor(Color.BLACK); // Set color to black
+                                isAddressSet = true; // Set flag to true
                             } else {
                                 addressTextView.setText("Address: Not set");
+                                addressTextView.setTextColor(Color.RED); // Set color to red
+                                isAddressSet = false; // Set flag to false
                             }
                         } else {
                             addressTextView.setText("Address: Not set");
+                            addressTextView.setTextColor(Color.RED); // Set color to red
+                            isAddressSet = false; // Set flag to false
                         }
+                        updatePlaceOrderButtonState(); // Update button state after address change
                     });
         }
     }
@@ -184,7 +214,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
             // Get the current user's username from SharedPreferences
             String userId = sharedPreferences.getString("userId", "");
-            Log.d(TAG, "placeOrder: Retrieved userId from SharedPreferences: " + userId);
+            Log.d(TAG, "placeOrder: Retrieved userId from SharedPreferences: "+ userId);
 
             // Get the user's name from SharedPreferences
             String name = sharedPreferences.getString("username", "");

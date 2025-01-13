@@ -46,25 +46,25 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
     private int getImageResource(int imageNum) {
         if (imageNum == 1) {
-            return R.drawable.pastil1;
+            return R.drawable.pastil2;
         } else if (imageNum == 2) {
-            return R.drawable.rice1;
+            return R.drawable.rice2;
         } else if (imageNum == 3) {
-            return R.drawable.hotdog1;
+            return R.drawable.hotdog2;
         } else if (imageNum == 4) {
-            return R.drawable.coke1;
+            return R.drawable.coke2;
         } else if (imageNum == 5) {
-            return R.drawable.sprite1;
+            return R.drawable.sprite2;
         } else if (imageNum == 6) {
-            return R.drawable.styro1;
+            return R.drawable.styro2;
         } else if (imageNum == 7) {
-            return R.drawable.spoon1;
+            return R.drawable.spoon2;
         } else if (imageNum == 8) {
-            return R.drawable.fork1;
+            return R.drawable.fork2;
         } else if (imageNum == 9) {
-            return R.drawable.chicken1;
+            return R.drawable.chicken2;
         } else if (imageNum == 10) {
-            return R.drawable.kwek1;
+            return R.drawable.kwek2;
         }
         return R.drawable.ic_launcher_foreground;
     }
